@@ -630,20 +630,20 @@ analizar_con_dbFD <- function(abund_df, trait_df, label, out_dir) {
       }, error = function(e2) {
         cat("  [!] Intento 2 falló:", e2$message, "\n")
         tryCatch({
-          cat("  -> Intento 3: PCoA manual + rasgos sintéticos\n")
+          cat("  -> Intento 3: PCoA + distancia euclidiana pre-calculada\n")
           dist_g <- gowdis(trait_matrix)
           k_axes <- max(min(n_sp - 2, n_traits * 2, 10), 2)
           pcoa <- cmdscale(dist_g, k = k_axes, eig = TRUE)
-          n_cols <- ncol(pcoa$points)
-          pos <- which(pcoa$eig[1:n_cols] > 1e-10)
-          if (length(pos) < 2) pos <- 1:min(2, n_cols)
+          pos <- which(pcoa$eig > 1e-10)
+          if (length(pos) < 2) pos <- 1:min(2, ncol(pcoa$points))
           syn_traits <- pcoa$points[, pos, drop = FALSE]
           colnames(syn_traits) <- paste0("PCoA_", seq_len(ncol(syn_traits)))
+          syn_dist <- dist(syn_traits)
           n_syn <- ncol(syn_traits)
           cf <- n_sp > n_syn + 1
           m <- if (cf) n_syn else max(n_sp - 2, 2)
           if (!cf) cat("    calc.FRic = FALSE con rasgos sintéticos\n")
-          dbFD(x = syn_traits, a = abund_matrix,
+          dbFD(x = syn_dist, a = abund_matrix,
                calc.FRic = cf, m = m,
                stand.FRic = TRUE, scale.RaoQ = TRUE,
                calc.CWM = FALSE, calc.FGR = FALSE,
@@ -655,12 +655,12 @@ analizar_con_dbFD <- function(abund_df, trait_df, label, out_dir) {
             dist_g <- gowdis(trait_matrix)
             k_axes <- max(min(n_sp - 2, 5), 2)
             pcoa <- cmdscale(dist_g, k = k_axes, eig = TRUE)
-            n_cols <- ncol(pcoa$points)
-            pos <- which(pcoa$eig[1:n_cols] > 1e-10)
-            if (length(pos) < 2) pos <- 1:min(2, n_cols)
+            pos <- which(pcoa$eig > 1e-10)
+            if (length(pos) < 2) pos <- 1:min(2, ncol(pcoa$points))
             syn_traits <- pcoa$points[, pos, drop = FALSE]
             colnames(syn_traits) <- paste0("PCoA_", seq_len(ncol(syn_traits)))
-            dbFD(x = syn_traits, a = abund_matrix,
+            syn_dist <- dist(syn_traits)
+            dbFD(x = syn_dist, a = abund_matrix,
                  calc.FRic = FALSE, m = 2,
                  stand.FRic = TRUE, scale.RaoQ = TRUE,
                  calc.CWM = FALSE, calc.FGR = FALSE,
@@ -867,15 +867,17 @@ analizar_unificado <- function(abund_df, traits_flora, traits_fauna, label, out_
   m_val <- if (calc_fric) n_syn else max(n_sp - 2, 2)
   if (!calc_fric) cat("  [!] calc.FRic = FALSE (pocas especies para", n_syn, "ejes)\n")
 
+  syn_dist <- dist(syn_traits)
+
   resultado <- tryCatch(
-    dbFD(x = syn_traits, a = abund_matrix, calc.FRic = calc_fric, m = m_val,
+    dbFD(x = syn_dist, a = abund_matrix, calc.FRic = calc_fric, m = m_val,
          stand.FRic = TRUE, scale.RaoQ = TRUE, calc.CWM = FALSE,
          calc.FGR = FALSE, clust.type = "ward", messages = FALSE),
     error = function(e) {
       cat("  [!] dbFD falló:", e$message, "\n")
       cat("  -> Reintentando con calc.FRic = FALSE\n")
       tryCatch(
-        dbFD(x = syn_traits, a = abund_matrix, calc.FRic = FALSE, m = 2,
+        dbFD(x = syn_dist, a = abund_matrix, calc.FRic = FALSE, m = 2,
              stand.FRic = TRUE, scale.RaoQ = TRUE, calc.CWM = FALSE,
              calc.FGR = FALSE, clust.type = "ward", messages = FALSE),
         error = function(e2) {
