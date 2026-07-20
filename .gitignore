@@ -1,0 +1,17 @@
+# R
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# Resultados generados (se regeneran ejecutando el script)
+Analisis_R/Flora/*.csv
+Analisis_R/Flora/*.png
+Analisis_R/Fauna/*.csv
+Analisis_R/Fauna/*.png
+Analisis_R/Unificado/*.csv
+Analisis_R/Unificado/*.png
+Analisis_R/session_info.txt
+
+# Archivos temporales de LibreOffice
+.~lock.*
