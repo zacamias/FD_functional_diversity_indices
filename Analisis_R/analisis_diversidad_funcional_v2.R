@@ -254,7 +254,8 @@ validar_estructura <- function(file, cfg) {
   # Verificar columnas en hojas de abundancia
   for (tipo_grupo in c("flora_abundancia", "fauna_abundancia")) {
     nombre_hoja <- cfg$hojas[[tipo_grupo]]
-    df <- read_ods(file, sheet = nombre_hoja, limit = 3)
+    df <- read_ods(file, sheet = nombre_hoja)
+    df <- head(df, 3)
 
     # Verificar columna de especie
     col_esp <- cfg$columnas$abundancia$especie
@@ -291,7 +292,8 @@ validar_estructura <- function(file, cfg) {
   # Verificar columnas en hojas de rasgos
   for (tipo_rasgo in c("rasgos_flora", "rasgos_fauna")) {
     nombre_hoja <- cfg$hojas[[tipo_rasgo]]
-    df <- read_ods(file, sheet = nombre_hoja, limit = 3)
+    df <- read_ods(file, sheet = nombre_hoja)
+    df <- head(df, 3)
     cols_esperadas <- cfg$columnas[[tipo_rasgo]]
 
     # Verificar columna de especie
