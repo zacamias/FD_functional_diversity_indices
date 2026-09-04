@@ -1,0 +1,300 @@
+---
+title: "Functional diversity of the Las Peñas campus"
+subtitle: "A reference condition for an urban green area under construction"
+author: "Miguel Ángel Morán Piedrahita — Facultad de Ciencias de la Vida, ESPOL"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+    code_folding: show
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width = 8, fig.height = 4.4, dpi = 150)
+# Run from the repository root, not from docs/
+knitr::opts_knit$set(root.dir = normalizePath(".."))
+```
+
+# The question
+
+More than half of the Las Peñas campus (ESPOL, Guayaquil; 3.25 ha) is being
+rebuilt. The campus sits at the foot of the Cerro del Carmen and Cerro Las
+Peñas, a few metres from the Guayas river, among the last fragments of Ecuadorian
+dry forest inside the city — a forest type that lost 2 632 km² between 1990 and
+2018 and of which only 13 % of the coastal remnant enjoys any protection.
+
+Before the works began there was no diagnosis of what lived there. Without one,
+three things follow: the construction proceeds blind to the relative ecological
+value of each zone; landscape-design decisions that could favour pollinators and
+birds are made on aesthetic grounds alone; and, once it is over, there is no
+reference condition against which to judge whether anything was lost.
+
+**Counting species does not answer this.** Species richness says nothing about
+what those species *do* — and it is the doing that a construction project
+disrupts. This study therefore measures functional diversity: the value and the
+range of the traits that determine how organisms respond to environmental
+filters and how they affect ecosystem processes.
+
+# What was measured
+
+| | |
+|---|---|
+| **Zones** | 1, 3, 4, 5 (Zone 2 excluded — under construction). 13 893 m², 42.7 % of the campus |
+| **Flora** | Single complete census. Abundance = crown-projection cover |
+| **Fauna** | Three monthly campaigns (May–July 2026): birds by 15 m fixed-radius point counts, reptiles and pollinators by timed walks |
+| **Flora traits** | Growth form, height, leaf phenology, leaf form, dispersal syndrome, LDMC, SLA |
+| **Fauna traits** | Body mass, trophic guild, activity stratum |
+| **Recorded** | 42 plant species (all introduced ornamentals) · 9 animal species (6 native) |
+
+The full data dictionary — units, laboratory protocol, and the five documented
+deviations from the reference protocol for LDMC and SLA — is in
+[`data/README.md`](../data/README.md).
+
+# Loading the data
+
+```{r load}
+library(ggplot2); library(cluster); library(vegan)
+source("R/redundancy.R")
+source("R/taxonomic_diversity.R")
+
+rd <- function(f) read.csv(file.path("data", f), stringsAsFactors = FALSE)
+
+traits_flora <- rd("traits_flora.csv")
+abund_flora  <- rd("abundance_flora.csv")
+meta         <- rd("species_metadata.csv")
+zones        <- rd("zones.csv")
+
+zones[zones$evaluada == "TRUE", c("Zona","area_m2","puntos_ha","superficie_cubierta_pct")]
+```
+
+Note the fourth column before going further. Sampling effort per unit area
+varies **4.4-fold** between Zone 3 (2.9 points ha⁻¹) and Zone 5 (12.9 points
+ha⁻¹), and effective coverage ranges from 20.5 % to 90.9 %. Every between-zone
+comparison below carries that caveat.
+
+# Building the trait space
+
+Traits are mixed — three continuous, four categorical for flora — so the
+distance is Gower's, which handles both and rescales each numeric variable by
+its range. Height and SLA are `log10`-transformed first because both are
+strongly right-skewed, and Gower's range rescaling is sensitive to the extremes
+that skew produces.
+
+```{r traitspace}
+prep_traits <- function(df, continuous, categorical, log_cols = character(0)) {
+  rownames(df) <- df$Nombre_cientifico
+  df$Nombre_cientifico <- NULL
+  for (cc in log_cols)    df[[cc]] <- log10(df[[cc]])
+  for (ct in categorical) df[[ct]] <- as.factor(df[[ct]])
+  df[, c(continuous, categorical), drop = FALSE]
+}
+prep_comm <- function(abund, species_ref) {
+  rownames(abund) <- abund$Nombre_cientifico
+  abund$Nombre_cientifico <- NULL
+  m <- t(as.matrix(abund))
+  m <- m[, colnames(m) %in% species_ref, drop = FALSE]
+  m <- m[rowSums(m) > 0, , drop = FALSE]
+  m[, colSums(m) > 0, drop = FALSE]
+}
+
+tf <- prep_traits(traits_flora,
+                  continuous  = c("H_m", "LDMC", "SLA"),
+                  categorical = c("forma_crecimiento","fenologia","forma_hoja","dispersion"),
+                  log_cols    = c("H_m", "SLA"))
+cf <- prep_comm(abund_flora, rownames(tf))
+tf <- tf[colnames(cf), , drop = FALSE]
+
+d_flora <- cluster::daisy(tf, metric = "gower")
+c(min = min(d_flora), mean = mean(d_flora), max = max(d_flora))
+```
+
+Gower distances on mixed traits are generally **not Euclidean**, which produces
+negative eigenvalues in the PCoA and leaves the convex hull behind FRic
+ill-defined. Two corrections are standard: Cailliez adds a constant to the
+distances, Lingoes to the squared distances. Lingoes distorts less; **Cailliez
+is the default in this repository because it is what produced the published
+tables**, and reproducing them takes precedence over improving on them. The
+choice is a one-line change and should be reported as a sensitivity check, not
+made silently.
+
+# Which indices each zone can actually support
+
+```{r feasibility}
+S <- rowSums(cf > 0)
+data.frame(Zone = names(S), n_species = S,
+           `FRic/FEve/FDiv` = ifelse(S >= 3, "computable", "NA — convex hull needs S ≥ 3"),
+           FDis = "computable", check.names = FALSE, row.names = NULL)
+```
+
+Zone 1 holds two plant species. No amount of computation produces a convex hull
+from two points in a multidimensional space, so its FRic, FEve and FDiv are
+structurally undefined — not missing, not zero. Publishing this table means the
+`NA`s in the results below are explained rather than merely present.
+
+FDis, by contrast, is defined for any non-empty community and is far less
+sensitive to the number of retained axes. That is why the management
+recommendations lean on it.
+
+# Results
+
+```{r heatmaps, out.width="100%", echo=FALSE}
+knitr::include_graphics(c("figures/heatmap_flora.png", "figures/heatmap_birds.png"))
+```
+
+Two patterns dominate and they belong together.
+
+**Functional richness is low everywhere.** The species present occupy a small
+volume of trait space — the compression that urban environmental filters
+reliably produce, and here amplified by a flora that is 100 % introduced
+ornamentals, chosen by a landscaping budget rather than assembled by a dry
+forest.
+
+**Functional divergence is high** (0.59–1.00). The most abundant species sit
+away from the centre of that small volume. A community that is compact but whose
+extremes carry the abundance.
+
+A caution on the bird panel: FRic is `NA` there because Zones 3, 4 and 5 contain
+*exactly the same four species*, and an unweighted volume cannot tell identical
+species lists apart. Zone 1 is the exception — the only zone with *Columba
+livia* and *Quiscalus mexicanus*, two large synanthropic birds that widen the
+body-mass range. That the **car park** would score the campus's highest bird
+functional richness is the clearest possible argument against using any single
+index as a conservation criterion.
+
+# Species diversity is not functional diversity
+
+```{r redundancy}
+red_flora <- functional_redundancy(cf, as.matrix(d_flora))
+red_flora[, c("Zone","n_species","Simpson_D","RaoQ","FR_rel")]
+```
+
+Functional redundancy (Ricotta et al. 2016) is the share of species diversity
+that does **not** translate into functional diversity: `FR = D − Q`, reported as
+`1 − Q/D`. It is the measurement that licenses the resilience claim. A low FRic
+says the community occupies little trait space; it does *not* say that different
+species do the same job. That is a separate assertion and it needs its own
+number.
+
+```{r redfig, out.width="100%", echo=FALSE}
+knitr::include_graphics("figures/taxonomic_vs_functional.png")
+```
+
+> **Read [`docs/verification.md`](verification.md), item V1, before quoting a
+> redundancy figure.** The thesis reports 0.79–0.88; this implementation gives
+> 0.21–0.57 on the same data with the same formula. The disagreement is
+> systematic and almost certainly comes down to how the dissimilarity inside Q
+> was scaled. It is unresolved, and it is stated here rather than hidden,
+> because the "≈87 % redundancy" figure is the single number the conclusions
+> lean on hardest.
+
+# Is any of this more than a richness effect?
+
+This is the question a committee asks first, and until now nothing in the
+pipeline could answer it. FRic, FDis and Rao's Q all rise with richness by
+construction, and the zones span 2 to 26 plant species. Saying "Zone 4 is
+functionally richer than Zone 3" risks saying no more than "Zone 4 has more
+species", which the census already told us.
+
+`R/null_models.R` shuffles the species labels of the **trait** matrix 999 times
+while holding the community matrix — and therefore richness and the abundance
+distribution — fixed:
+
+$$\text{SES} = \frac{\text{observed} - \text{mean}(\text{null})}{\text{sd}(\text{null})}$$
+
+- **SES < 0** — co-occurring species are *more similar* than an equally rich
+  random draw: functional clustering, the expected signature of urban filtering.
+- **SES > 0** — *more different* than expected: overdispersion.
+- **SES ≈ 0** — the zone is a random subset of the campus pool, and the
+  difference between zones is a richness difference and nothing more.
+
+```{r nullmodels, eval=FALSE}
+# Requires FD. ~2-5 minutes for flora at 999 permutations.
+source("R/null_models.R")
+ses <- ses_functional(tf, cf, n_perm = 999, corr = "cailliez")
+subset(ses, Index %in% c("FDis", "RaoQ"))
+```
+
+One limitation is worth stating plainly: the pool is the **campus** species
+list, so the test asks whether a zone is a random draw from what grows on
+campus. It cannot ask whether the campus itself is filtered relative to the
+regional dry-forest flora — that needs a regional pool this study did not
+sample.
+
+# The *Apis mellifera* problem
+
+*Apis mellifera* accounted for **90.1–95.7 %** of Zone 4 fauna records. Because
+FDis weights distances by relative abundance, pooling it with the vertebrates
+drags the community centroid onto a single functional type and depresses the
+index. Analysed separately, the effect disappears — confirming it was a
+methodological artefact, not a property of the community.
+
+Two further reasons make the separation non-negotiable rather than convenient:
+
+1. Those counts are **extrapolated**, not observed: four 2.5 m units in *Ixora
+   coccinea* planters scaled by a factor of 30.4 to the 304 m the plant occupies.
+2. The units were placed in the four *longest* planters, not at random. Since
+   honeybees concentrate foragers on the richest patches through dance
+   recruitment, the figure is an **upper bound** — an index of visitation
+   intensity per unit of floral resource, not a population size.
+
+The `sensitivity/` outputs quantify the effect directly by recomputing every
+index under raw, `log(x+1)` and presence/absence weighting. A large gap between
+raw and presence *is* the dominance signal.
+
+# What follows for the remodeling
+
+**Conserve Zone 4 and the large-crowned trees** — *Tabebuia aurea*, *Gliricidia
+sepium*, *Mangifera indica*, *Ficus benjamina*. The case does not rest on the
+functional indices, which for birds do not discriminate between zones. It rests
+on convergent evidence: highest plant richness (26 species), highest accumulated
+crown cover (101.3 %), the only canopy stratum the frugivorous birds use, five
+of the six native animal species, and the campus's only *Ixora coccinea* — the
+sole floral resource on which any pollinator activity was ever observed.
+
+**Plant for the traits that are missing, not for the species that are pretty.**
+The trait matrix names three concrete gaps: 86 % of species are evergreen and
+every one of the six deciduous species is an introduced tree, so **no deciduous
+shrub exists on campus**; 26 % are ornamental palms, all evergreen and
+zoochorous — the single most redundant block in the assemblage; and only 8 of 42
+species sit at the conservative end of the leaf-economics spectrum. Native dry-
+forest species that fill those gaps: *Handroanthus chrysanthus* (deciduous,
+wind-dispersed, a functional substitute for the introduced *Tabebuia aurea*),
+*Cordia lutea* (semi-deciduous shrub, long flowering, continuous resource for
+native pollinators), *Bonellia sprucei* and *Pithecellobium excelsum*.
+
+**Diversify the floral resource** so that the pollinator community is not one
+introduced species visiting one introduced shrub.
+
+**Re-run this pipeline after the works** with the same methods, using these
+results as the reference.
+
+# Limitations
+
+- **Three campaigns, one season.** Sampling spans the wet-to-dry transition
+  only; the full seasonal turnover is not captured.
+- **Effort varies 4.4-fold** between zones (see `data/zones.csv`). Rarefaction
+  helps for counts; it does not fully correct this.
+- **No before–after design and no unintervened control.** Future change cannot
+  be attributed unambiguously to the remodeling — the reference condition
+  supports description, not causal inference.
+- **Small n throughout.** Four zones and 2–26 species per zone leave little room
+  for inferential statistics; the null models are the appropriate tool at this
+  scale, and even they need the caveat above.
+- **LDMC is systematically overestimated** (no rehydration before fresh-mass
+  determination) and leaf subsamples came from a single individual per species.
+  Relative ordering along the leaf-economics axis holds — which is what Gower
+  uses — but the absolute values are not comparable to TRY or GLOPNET.
+- **Open verification items.** See [`docs/verification.md`](verification.md).
+  The redundancy discrepancy (V1) is unresolved.
+
+# Session information
+
+```{r session}
+sessionInfo()
+```
