@@ -1,0 +1,99 @@
+cff-version: 1.2.0
+message: "If you use this software or these data, please cite them as below."
+title: "Functional diversity of the Las Peñas campus (ESPOL): analysis pipeline and field dataset"
+abstract: >-
+  R pipeline and field dataset used to characterize the functional diversity
+  (FRic, FEve, FDiv, FDis, Rao's Q and functional redundancy) of the flora and
+  fauna of the Las Peñas campus (ESPOL, Guayaquil, Ecuador), an urban green area
+  adjacent to tropical dry forest remnants, as a pre-intervention reference
+  condition for the campus remodeling. Includes Gower distances on mixed traits,
+  PCoA with correction for negative eigenvalues, abundance-weighting sensitivity
+  analysis, null models for richness-independent effect sizes, taxonomic
+  diversity for contrast, and zone-level heatmaps.
+type: software
+version: 2.0.0
+date-released: "2026-09-04"
+license: MIT
+license-url: "https://github.com/zacamias/FD_funtional_diversity_key_incators/blob/main/LICENSE"
+repository-code: "https://github.com/zacamias/FD_funtional_diversity_key_incators"
+keywords:
+  - functional diversity
+  - functional traits
+  - urban ecology
+  - tropical dry forest
+  - Gower distance
+  - PCoA
+  - functional redundancy
+  - null models
+  - Ecuador
+  - R
+authors:
+  - family-names: "Morán Piedrahita"
+    given-names: "Miguel Ángel"
+    email: "mamoran@espol.edu.ec"
+    affiliation: "Facultad de Ciencias de la Vida, Escuela Superior Politécnica del Litoral (ESPOL), Guayaquil, Ecuador"
+
+references:
+  - type: thesis
+    title: "Caracterización de la diversidad funcional del campus Las Peñas durante su remodelación"
+    thesis-type: "Proyecto Integrador, Biólogo"
+    authors:
+      - family-names: "Morán Piedrahita"
+        given-names: "Miguel Ángel"
+    institution:
+      name: "Escuela Superior Politécnica del Litoral (ESPOL)"
+    location:
+      name: "Guayaquil, Ecuador"
+    year: 2026
+  - type: article
+    title: "A distance-based framework for measuring functional diversity from multiple traits"
+    authors:
+      - family-names: "Laliberté"
+        given-names: "Etienne"
+      - family-names: "Legendre"
+        given-names: "Pierre"
+    journal: "Ecology"
+    volume: 91
+    issue: 1
+    start: 299
+    end: 305
+    year: 2010
+    doi: "10.1890/08-2244.1"
+  - type: article
+    title: "New multidimensional functional diversity indices for a multifaceted framework in functional ecology"
+    authors:
+      - family-names: "Villéger"
+        given-names: "Sébastien"
+      - family-names: "Mason"
+        given-names: "Norman W. H."
+      - family-names: "Mouillot"
+        given-names: "David"
+    journal: "Ecology"
+    volume: 89
+    issue: 8
+    start: 2290
+    end: 2301
+    year: 2008
+    doi: "10.1890/07-1206.1"
+  - type: article
+    title: "Measuring the functional redundancy of biological communities: a quantitative guide"
+    authors:
+      - family-names: "Ricotta"
+        given-names: "Carlo"
+      - family-names: "Bello"
+        given-names: "Francesco de"
+      - family-names: "Moretti"
+        given-names: "Marco"
+      - family-names: "Caccianiga"
+        given-names: "Marco"
+      - family-names: "Cerabolini"
+        given-names: "Bruno E. L."
+      - family-names: "Pavoine"
+        given-names: "Sandrine"
+    journal: "Methods in Ecology and Evolution"
+    volume: 7
+    issue: 11
+    start: 1386
+    end: 1395
+    year: 2016
+    doi: "10.1111/2041-210X.12604"
