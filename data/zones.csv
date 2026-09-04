@@ -1,0 +1,6 @@
+Zona,area_m2,pct_campus,puntos_conteo,puntos_ha,superficie_cubierta_pct,detecciones_fauna,especies_fauna,evaluada
+Zona_1,2316,7.1,1,4.3,30.5,39,5,TRUE
+Zona_2,18607,57.3,0,0,0,0,0,FALSE
+Zona_3,6904,21.2,2,2.9,20.5,77,6,TRUE
+Zona_4,3117,9.6,2,6.4,45.4,1043,7,TRUE
+Zona_5,1556,4.8,2,12.9,90.9,30,6,TRUE

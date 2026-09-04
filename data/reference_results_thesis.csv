@@ -1,0 +1,9 @@
+grupo,Zona,n,FRic,FEve,FDiv,FDis,FR_rel,fuente
+flora,Zona_1,2,NA,NA,NA,0.124,NA,Tabla 8
+flora,Zona_3,8,1.25e-06,0.560,0.997,0.069,NA,Tabla 8
+flora,Zona_4,26,4.27e-04,0.532,0.934,0.265,NA,Tabla 8
+flora,Zona_5,20,4.77e-04,0.371,0.889,0.293,NA,Tabla 8
+aves,Zona_1,4,NA,0.887,0.590,0.291,0.794,Tabla 9
+aves,Zona_3,4,NA,0.745,0.876,0.309,0.829,Tabla 9
+aves,Zona_4,4,NA,0.654,0.791,0.292,0.872,Tabla 9
+aves,Zona_5,4,NA,0.709,0.857,0.320,0.850,Tabla 9
