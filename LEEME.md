@@ -82,8 +82,8 @@ entrada.
 ## Uso rápido
 
 ```bash
-git clone https://github.com/zacamias/FD_funtional_diversity_key_incators.git
-cd FD_funtional_diversity_key_incators
+git clone https://github.com/zacamias/FD_functional_diversity_indices.git
+cd FD_functional_diversity_indices
 
 # Figuras y análisis de redundancia / diversidad taxonómica
 # (solo necesita ggplot2, reshape2, cluster, vegan — no FD)

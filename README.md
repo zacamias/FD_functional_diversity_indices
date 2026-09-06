@@ -82,8 +82,8 @@ redundancy figure from this repository without reading that entry first.
 ## Quick start
 
 ```bash
-git clone https://github.com/zacamias/FD_funtional_diversity_key_incators.git
-cd FD_funtional_diversity_key_incators
+git clone https://github.com/zacamias/FD_functional_diversity_indices.git
+cd FD_functional_diversity_indices
 
 # Figures and the redundancy / taxonomic analysis (needs only ggplot2, reshape2,
 # cluster, vegan — no FD, so this runs almost anywhere)
