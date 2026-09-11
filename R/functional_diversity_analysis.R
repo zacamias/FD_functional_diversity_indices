@@ -55,12 +55,21 @@ set.seed(123)
 
 ## ---- 1. PACKAGES -------------------------------------------------------------
 pkgs_required <- c("FD", "ape", "ade4", "ggplot2", "reshape2", "vegan")
-for (p in pkgs_required) {
-  if (!requireNamespace(p, quietly = TRUE)) {
-    install.packages(p, repos = "https://cloud.r-project.org")
-  }
-  suppressPackageStartupMessages(library(p, character.only = TRUE))
+missing <- pkgs_required[
+  !vapply(pkgs_required, requireNamespace, logical(1), quietly = TRUE)
+]
+if (length(missing) > 0) {
+  stop(
+    "Missing required packages: ", paste(missing, collapse = ", "), ".\n",
+    "This project pins its environment with renv. Restore it with:\n",
+    "  install.packages('renv'); renv::restore()\n",
+    "Installing these manually will not reproduce the published results.",
+    call. = FALSE
+  )
 }
+invisible(lapply(pkgs_required, function(p) {
+  suppressPackageStartupMessages(library(p, character.only = TRUE))
+}))
 # OPTIONAL: mFD. If missing or not installable (it needs cmake, libgmp-dev,
 # libnlopt-cxx-dev), the script continues with FD::dbFD only and says so.
 mFD_available <- requireNamespace("mFD", quietly = TRUE)
